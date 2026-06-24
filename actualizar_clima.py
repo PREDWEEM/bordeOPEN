@@ -1,13 +1,12 @@
-
 import requests
 import pandas as pd
 import sys
 import os
 
-# Coordenadas específicas de AZUL, Provincia de Buenos Aires
-LAT = -36.87
-LON = -59.89
-ARCHIVO_CSV = 'meteo_daily.csv'
+# Coordenadas del nuevo sitio (aprox. provincia de La Pampa, Argentina)
+LAT = -37.770949
+LON = -63.087790
+ARCHIVO_CSV = 'meteo_daily_nuevo_sitio.csv'
 
 def actualizar_pronostico():
     url = "https://api.open-meteo.com/v1/forecast"
@@ -23,7 +22,7 @@ def actualizar_pronostico():
         "forecast_days": 7
     }
     
-    print("Consultando a Open-Meteo para Azul (Ventana Híbrida: -7d a +7d)...")
+    print("Consultando a Open-Meteo para el nuevo sitio (Ventana Híbrida: -7d a +7d)...")
     try:
         response = requests.get(url, params=params, timeout=10)
         if response.status_code != 200:
@@ -35,7 +34,7 @@ def actualizar_pronostico():
         
     data = response.json()
     
-    # DataFrame con el bloque de 14 días móviles de Azul
+    # DataFrame con el bloque de 14 días móviles del nuevo sitio
     df_nuevo = pd.DataFrame({
         'Fecha': data['daily']['time'],
         'TMAX': data['daily']['temperature_2m_max'],
@@ -47,7 +46,7 @@ def actualizar_pronostico():
     df_nuevo['Fecha'] = pd.to_datetime(df_nuevo['Fecha'])
     
     if df_nuevo.isnull().values.any():
-        print("ADVERTENCIA: Datos incompletos detectados para Azul. Aplicando interpolación forward-fill.")
+        print("ADVERTENCIA: Datos incompletos detectados. Aplicando interpolación forward-fill.")
         df_nuevo = df_nuevo.ffill()
 
     # Integración consistente con el archivo histórico local
@@ -65,14 +64,14 @@ def actualizar_pronostico():
         df_final = df_final.drop_duplicates(subset=['Fecha'], keep='last')
         df_final = df_final.sort_values(by='Fecha').reset_index(drop=True)
     else:
-        print(f"No se encontró {ARCHIVO_CSV}, creando un registro nuevo para Azul...")
+        print(f"No se encontró {ARCHIVO_CSV}, creando un registro nuevo...")
         df_final = df_nuevo
 
     # Guardar manteniendo consistencia de formato de fecha ISO estricto (YYYY-MM-DD)
     df_final['Fecha'] = df_final['Fecha'].dt.strftime('%Y-%m-%d')
     df_final.to_csv(ARCHIVO_CSV, index=False)
     
-    print("Base meteorológica de Azul sincronizada y purgada con éxito. Últimos 10 registros:")
+    print("Base meteorológica sincronizada y purgada con éxito. Últimos 10 registros:")
     print(df_final.tail(10))
 
 if __name__ == "__main__":
