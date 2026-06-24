@@ -6,7 +6,7 @@ import os
 # Coordenadas del nuevo sitio (aprox. provincia de La Pampa, Argentina)
 LAT = -37.770949
 LON = -63.087790
-ARCHIVO_CSV = 'meteo_daily_nuevo_sitio.csv'
+ARCHIVO_CSV = 'meteo_daily.csv'
 
 def actualizar_pronostico():
     url = "https://api.open-meteo.com/v1/forecast"
